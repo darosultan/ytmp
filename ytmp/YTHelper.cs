@@ -76,7 +76,8 @@ namespace ytmp
                             pagetoken = listResponse.nextPageToken;
                         foreach (Item item in listResponse.items)
                         {
-                            output.Add(new YTSong(item.snippet.title, item.snippet.resourceId.videoId));
+                            if(item.snippet.title!="Deleted video")
+                                output.Add(new YTSong(item.snippet.title, item.snippet.resourceId.videoId));
                         }
                     }
                     catch

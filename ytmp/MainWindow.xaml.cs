@@ -93,7 +93,11 @@ namespace ytmp
                 image.Source = bitmap;
                 try
                 {
-                    stream = Bass.BASS_StreamCreateURL(YTHelper.createDirectLink(song.id), 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_PRESCAN, null, IntPtr.Zero);
+                    string directlink = YTHelper.createDirectLink(song.id);
+                    if (directlink != null)
+                        stream = Bass.BASS_StreamCreateURL(directlink, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_PRESCAN, null, IntPtr.Zero);
+                    else
+                        BrokenSong();
                     if (stream != 0)
                     {
                         setVolume();
@@ -102,18 +106,23 @@ namespace ytmp
                 }
                 catch
                 {
-                    int index = playListBox.SelectedIndex;
-                    playlist.Remove(playlist.Current());
-                    updatePlayListBox();
-                    if (index < playListBox.Items.Count - 1)
-                        playListBox.SelectedIndex = index;
-                    else
-                        playListBox.SelectedIndex = 0;
-                    BassPlay();
+                    BrokenSong();
                 }
                 playListBox.SelectedIndex = playlist.playIndex;
                 playButtonIcon.Kind = MaterialDesignThemes.Wpf.PackIconKind.Pause;
             }
+        }
+
+        public void BrokenSong()
+        {
+            int index = playListBox.SelectedIndex;
+            playlist.Remove(playlist.Current());
+            updatePlayListBox();
+            if (index < playListBox.Items.Count - 1)
+                playListBox.SelectedIndex = index;
+            else
+                playListBox.SelectedIndex = 0;
+            BassPlay();
         }
 
         public void BassNext()
@@ -241,10 +250,10 @@ namespace ytmp
         {
             playListBox.Items.Clear();
             if(playlist!=null)
-            for(int i=0; i<playlist.Count();i++)
-            {
-                playListBox.Items.Add(playlist[i]);
-            }
+                foreach(YTSong song in playlist.GetList())
+                {
+                    playListBox.Items.Add(song);
+                }
         }
 
         private void playButton_Click(object sender, RoutedEventArgs e)

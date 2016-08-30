@@ -50,6 +50,11 @@ namespace ytmp
             unshuffledList.Remove(song);
         }
 
+        public List<YTSong> GetList()
+        {
+            if (_shuffle) return shuffledList;
+            else return unshuffledList;
+        }
 
         public YTSong this[int index]
         {
