@@ -14,8 +14,9 @@
         FontFamily="pack://application:,,,/MaterialDesignThemes.Wpf;component/Resources/Roboto/#Roboto" WindowStyle="None" ResizeMode="CanMinimize"
         >
     <DockPanel>
-        <materialDesign:ColorZone Padding="16, 0, 4, 16" materialDesign:ShadowAssist.ShadowDepth="Depth2"
+        <materialDesign:ColorZone Padding="16, 0, 4, 0" materialDesign:ShadowAssist.ShadowDepth="Depth2"
                                           Mode="PrimaryDark" DockPanel.Dock="Top" MouseDown="ColorZoneDrag">
+            
             <Grid>
 
                 <Grid.ColumnDefinitions>
@@ -29,6 +30,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
                 <materialDesign:PackIcon Grid.Column="0" VerticalAlignment="Center" Grid.Row="1" Kind="YoutubePlay" Width="35" Height="26" />
@@ -36,6 +38,7 @@
 
                 <Button Cursor="Arrow" Padding="10, -6, 10, 0"  x:Name="minimizeButton"  Grid.Column="3" Grid.Row="0" Height="16" VerticalAlignment="Top" HorizontalAlignment="Right" Foreground="White" Click="minimizeButton_Click" >_</Button>
                 <Button Cursor="Arrow" Padding="10, -1, 10, 0"  x:Name="closeButton"  Grid.Column="5" Grid.Row="0" Height="16" VerticalAlignment="Top" HorizontalAlignment="Right" Foreground="White" Click="closeButton_Click" BorderThickness="0" FontSize="12" >x</Button>
+                <Label Grid.Column="5" HorizontalAlignment="Right" VerticalAlignment="Center" Height ="16" Padding="0" Grid.Row="2" Foreground="#DDFFFFFF" FontSize="9" >v0.1</Label>
             </Grid>
         </materialDesign:ColorZone>
 
@@ -45,7 +48,7 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <ListBox Grid.Column="1" x:Name="playListBox" HorizontalAlignment="Left" Height="405" VerticalAlignment="Top" Width="230" ItemsSource="{Binding playlist}" Margin="0,43,0,0">
+            <ListBox Grid.Column="1" x:Name="playListBox" HorizontalAlignment="Left" Height="405" VerticalAlignment="Top" Width="230" ItemsSource="{Binding playlist}" Margin="0,47,0,0">
                 <ListBox.ItemContainerStyle>
                     <Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource {x:Type ListBoxItem}}">
                         <EventSetter Event="MouseDoubleClick" Handler="playListBoxItem_MouseDoubleClick"/>
@@ -57,10 +60,10 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <ToggleButton Style="{StaticResource MaterialDesignFlatToggleButton}" Margin="0,7,0,0" VerticalAlignment="Top" HorizontalAlignment="Center" Height="35" Width="35" Grid.Column="0">
+                <ToggleButton x:Name="repeatButton" Style="{StaticResource MaterialDesignFlatToggleButton}" Margin="0,7,0,0" VerticalAlignment="Top" HorizontalAlignment="Center" Height="35" Width="35" Grid.Column="0">
                     <materialDesign:PackIcon Kind="Repeat" Height="21" Width="21" />
                 </ToggleButton>
-                <ToggleButton Style="{StaticResource MaterialDesignFlatToggleButton}" Margin="0,7,0,0" VerticalAlignment="Top" HorizontalAlignment="Center" Height="35" Width="35" Grid.Column="1">
+                <ToggleButton x:Name="shuffleButton" Style="{StaticResource MaterialDesignFlatToggleButton}" Margin="0,7,0,0" VerticalAlignment="Top" HorizontalAlignment="Center" Height="35" Width="35" Grid.Column="1" Click="shuffleButton_Click">
                     <materialDesign:PackIcon Kind="Shuffle" Height="21" Width="21" />
                 </ToggleButton>
             </Grid>
@@ -76,17 +79,17 @@
             <Slider ValueChanged="Slider_ValueChanged"
     Thumb.DragStarted="Slider_DragStarted"
     Thumb.DragCompleted="Slider_DragCompleted"  Name="posSlider" Margin="5,377,4,49" IsMoveToPointEnabled="True" Maximum="100" MouseUp="Slider_ValueChanged" />
-            <Button Cursor="Arrow" Padding ="0" Margin="10,406,437,10">
+            <Button x:Name="prevButton" Cursor="Arrow" Padding ="0" Margin="10,406,437,10" Click="prevButton_Click">
                 <materialDesign:PackIcon Kind="SkipPrevious" Width="25" Height="25" />
             </Button>
             <Button x:Name="playButton" Cursor="Arrow" Padding ="0" Margin="47,406,387,10" Click="playButton_Click" >
                 <materialDesign:PackIcon Name="playButtonIcon" Kind="Play" Width="25" Height="25" />
             </Button>
-            <Button Cursor="Arrow" Padding ="0" Margin="97,406,350,10" >
+            <Button x:Name="nextButton" Cursor="Arrow" Padding ="0" Margin="97,406,350,10" Click="nextButton_Click" >
                 <materialDesign:PackIcon Kind="SkipNext" Width="25" Height="25" />
             </Button>
             <Button Cursor="Arrow" Name="openButton" Style="{StaticResource MaterialDesignFlatButton}" Margin="402,18,10,398" Click="openButton_Click">Open</Button>
-            <Button Cursor="Arrow" Padding="0" Style="{StaticResource MaterialDesignFlatButton}" Margin="144,406,304,10">
+            <Button x:Name="muteButton" Cursor="Arrow" Padding="0" Style="{StaticResource MaterialDesignFlatButton}" Margin="144,406,304,10" Click="muteButton_Click">
                 <materialDesign:PackIcon Name="volIcon" Kind="VolumeHigh" Width="25" Height="25" />
             </Button>
             <Slider x:Name="volSlider" Minimum="0" Maximum="100" Style="{StaticResource MaterialDesignDiscreteSlider}" Margin="181,377,183,19" ValueChanged="volSlider_ValueChanged" MouseWheel="volIcon_MouseWheel" Value="100" IsMoveToPointEnabled="True"/>

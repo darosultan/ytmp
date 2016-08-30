@@ -76,6 +76,7 @@
     </ApplicationDefinition>
     <Compile Include="ItemInfo.cs" />
     <Compile Include="YTHelper.cs" />
+    <Compile Include="YTPlaylist.cs" />
     <Compile Include="YTSong.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -122,6 +123,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="pwned.js" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

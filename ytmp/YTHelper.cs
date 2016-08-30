@@ -10,8 +10,23 @@ using System.IO;
 
 namespace ytmp
 {
-    class YTHelper
+    static class YTHelper
     {
+        private static readonly Random rnd = new Random();
+
+        public static void Shuffle<T>(this IList<T> list)
+        {
+            int n = list.Count;
+            while (n > 1)
+            {
+                int k = rnd.Next(0, n);
+                n--;
+                T value = list[k];
+                list[k] = list[n];
+                list[n] = value;
+            }
+        }
+
         public static List<YTSong> gimmeItems(string ytlink)
         {
             List<YTSong> output = new List<YTSong>();
@@ -25,26 +40,32 @@ namespace ytmp
                     listId.Remove(listId.IndexOf('#'));
                 if (listId.Contains('#'))
                     listId.Remove(listId.IndexOf('#'));
-
-                string listRequestUrl = "https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&key=AIzaSyApTG3kkY0blW9WJFac00uwJp7Rkg31LCY&playlistId=" + listId;
-                var request = (HttpWebRequest)WebRequest.Create(listRequestUrl);
-                try
+                string pagetoken = String.Empty;
+                bool b = true;
+                while (b)
                 {
-                    var response = (HttpWebResponse)request.GetResponse();
-                    ListResponse listResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<ListResponse>(new StreamReader(response.GetResponseStream(), Encoding.UTF8).ReadToEnd());
-                    response.Close();
-
-                    foreach (Item item in listResponse.items)
+                    string listRequestUrl = "https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&key=AIzaSyApTG3kkY0blW9WJFac00uwJp7Rkg31LCY&playlistId=" + listId + "&pageToken=" + pagetoken;
+                    var request = (HttpWebRequest)WebRequest.Create(listRequestUrl);
+                    try
                     {
-                        output.Add(new YTSong(item.snippet.title, item.snippet.resourceId.videoId));
+                        var response = (HttpWebResponse)request.GetResponse();
+                        ListResponse listResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<ListResponse>(new StreamReader(response.GetResponseStream(), Encoding.UTF8).ReadToEnd());
+                        response.Close();
+                        if (listResponse.nextPageToken ==null)
+                            b = false;
+                        else
+                            pagetoken = listResponse.nextPageToken;
+                        foreach (Item item in listResponse.items)
+                        {
+                            output.Add(new YTSong(item.snippet.title, item.snippet.resourceId.videoId));
+                        }
                     }
-                    return output;
+                    catch
+                    {
+                        b = false;
+                    }
                 }
-                catch
-                {
-                    return output;
-                }
-                
+                return output;
             }
             else if(ytlink.Contains("v="))
             {
@@ -254,6 +275,7 @@ namespace ytmp
     {
         public string kind { get; set; }
         public string etag { get; set; }
+        public string nextPageToken { get; set; }
         public PageInfo pageInfo { get; set; }
         public List<Item> items { get; set; }
     }
