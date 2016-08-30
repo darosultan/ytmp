@@ -25,6 +25,27 @@ namespace ytmp
             }
         }
 
+        public static string timeFromSeconds(double curSec, double lenSec)
+        {
+
+            int curminutes = Convert.ToInt32(Math.Floor(curSec / 60));
+            int curnewsec = Convert.ToInt32(Math.Floor(curSec - (60 * curminutes)));
+            string curzerosec;
+            if (curnewsec < 10)
+                curzerosec = "0" + curnewsec.ToString();
+            else
+                curzerosec = curnewsec.ToString();
+            int lenminutes = Convert.ToInt32(Math.Floor(lenSec / 60));
+            int lennewsec = Convert.ToInt32(Math.Floor(lenSec - (60 * lenminutes)));
+            string lenzerosec;
+            if (lennewsec < 10)
+                lenzerosec = "0" + lennewsec.ToString();
+            else
+                lenzerosec = lennewsec.ToString();
+
+            return curminutes.ToString() + ":" + curzerosec + " / " + lenminutes.ToString() + ":" + lenzerosec;
+        }
+
         public static List<YTSong> gimmeItems(string ytlink)
         {
             List<YTSong> output = new List<YTSong>();

@@ -5,18 +5,18 @@ using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using System.Windows.Controls.Primitives;
 using Un4seen.Bass;
+using System.Windows.Threading;
 
 namespace ytmp
 {
     public partial class MainWindow : Window
     {
         private bool dragStarted = false;
+        private bool changedByTimer = false;
         private int _deviceLatencyMS = 0;
         int stream;
         YTPlaylist playlist;
         double oldvol;
-
-
 
         public MainWindow()
         {
@@ -32,25 +32,26 @@ namespace ytmp
             }
             else
                 MessageBox.Show(this, "Bass_Init error!");
-            setSlider();
+            DispatcherTimer timer = new DispatcherTimer();
+            timer.Interval = TimeSpan.FromMilliseconds(250);
+            timer.Tick+=setSlider;
+            timer.Start();
         }
 
-        private async void setSlider()
+        private void setSlider(object sender, EventArgs e)
         {
-            while (true)
+            if(!dragStarted&&stream!=0)
             {
-                if(!dragStarted&&stream!=0)
-                {
-                    double len = Bass.BASS_ChannelBytes2Seconds(stream, Bass.BASS_ChannelGetLength(stream));
-                    double pos = Bass.BASS_ChannelBytes2Seconds(stream, Bass.BASS_ChannelGetPosition(stream));
-                    double sliderPos= Math.Floor((pos / len) * 100.0);
-                    posSlider.Value = sliderPos;
-                    if (pos == len)
-                        BassNext();
-                }
-                await Task.Delay(500);
+                double len = Bass.BASS_ChannelBytes2Seconds(stream, Bass.BASS_ChannelGetLength(stream));
+                double pos = Bass.BASS_ChannelBytes2Seconds(stream, Bass.BASS_ChannelGetPosition(stream));
+                double sliderPos= Math.Floor((pos / len) * 100.0);
+                timerLabel.Content = YTHelper.timeFromSeconds(pos, len);
+                changedByTimer = true;
+                posSlider.Value = sliderPos;
+                changedByTimer = false;
+                if (pos == len)
+                    BassNext();
             }
-
         }
 
         private void ColorZoneDrag(object sender, MouseButtonEventArgs e)
@@ -169,6 +170,7 @@ namespace ytmp
         {
             Bass.BASS_StreamFree(stream);
             playButtonIcon.Kind = MaterialDesignThemes.Wpf.PackIconKind.Play;
+            timerLabel.Content = "0:00 / 0:00";
         }
 
         private void Slider_DragCompleted(object sender, DragCompletedEventArgs e)
@@ -186,7 +188,7 @@ namespace ytmp
             object sender,
             RoutedPropertyChangedEventArgs<double> e)
         {
-            if (!dragStarted&&posSlider.IsMouseDirectlyOver)
+            if (!dragStarted&&!changedByTimer)
                 BassSetPos(posSlider.Value);
         }
 
@@ -210,12 +212,6 @@ namespace ytmp
         {
             float vol = (float)(volSlider.Value / 100);
             Bass.BASS_ChannelSetAttribute(stream, BASSAttribute.BASS_ATTRIB_VOL, vol);
-        }
-
-        private void Slider_ValueChanged(object sender, MouseButtonEventArgs e)
-        {
-            if (!dragStarted)
-                BassSetPos(posSlider.Value);
         }
 
         private void volIcon_MouseWheel(object sender, MouseWheelEventArgs e)

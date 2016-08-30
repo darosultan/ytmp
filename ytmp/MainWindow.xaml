@@ -78,13 +78,16 @@
             <TextBox Style="{StaticResource MaterialDesignFloatingHintTextBox}" x:Name="linkBox" HorizontalAlignment="Left" Margin="10,10,0,0" TextWrapping="NoWrap"  materialDesign:HintAssist.Hint="Paste a link to a YouTube playlist or video here!" VerticalAlignment="Top" Width="387" RenderTransformOrigin="0.358,0.739"/>
             <Slider ValueChanged="Slider_ValueChanged"
     Thumb.DragStarted="Slider_DragStarted"
-    Thumb.DragCompleted="Slider_DragCompleted"  Name="posSlider" Margin="5,377,4,49" IsMoveToPointEnabled="True" Maximum="100" MouseUp="Slider_ValueChanged" />
+    Thumb.DragCompleted="Slider_DragCompleted"  Name="posSlider" Margin="5,377,4,49" IsMoveToPointEnabled="True" Maximum="100" />
             <Button x:Name="prevButton" Cursor="Arrow" Padding ="0" Margin="10,406,437,10" Click="prevButton_Click">
                 <materialDesign:PackIcon Kind="SkipPrevious" Width="25" Height="25" />
             </Button>
             <Button x:Name="playButton" Cursor="Arrow" Padding ="0" Margin="47,406,387,10" Click="playButton_Click" >
                 <materialDesign:PackIcon Name="playButtonIcon" Kind="Play" Width="25" Height="25" />
             </Button>
+            <Grid Margin="297,406,10,10" >
+                <Label VerticalAlignment="Center" HorizontalAlignment="Right" Padding="0" Name="timerLabel" FontSize="24">0:00 / 0:00</Label>
+            </Grid>
             <Button x:Name="nextButton" Cursor="Arrow" Padding ="0" Margin="97,406,350,10" Click="nextButton_Click" >
                 <materialDesign:PackIcon Kind="SkipNext" Width="25" Height="25" />
             </Button>
