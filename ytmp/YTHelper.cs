@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using Microsoft.ClearScript;
 using Microsoft.ClearScript.V8;
 using System.Net;
 using System.IO;
@@ -91,43 +89,13 @@ namespace ytmp
             else return null;
         }
 
-        //public static YTSong createYTSong(string vidId)
-        //{
-        //    string urlol = "http://www.youtube-mp3.org/a/pushItem/?item=https%3A//www.youtube.com/watch%3Fv%3D" + vidId + "&el=ma&bf=false&r=" + secSinceEpoch();
-        //    string lul = signUrl(urlol);
-        //    // Console.WriteLine(lul);
-        //    var request = (HttpWebRequest)WebRequest.Create(lul.ToString());
-        //    request.Headers.Add("Accept-Location", "*");
-        //    var response = (HttpWebResponse)request.GetResponse();
-        //    //Console.WriteLine(response.StatusCode);
-        //    response.Close();
-
-        //    string urlol2 = "http://www.youtube-mp3.org/a/itemInfo/?video_id=" + vidId + "&ac=www&t=grp&r=" + secSinceEpoch();
-        //    string lul2 = signUrl(urlol2);
-        //    //Console.WriteLine(lul2);
-        //    var request2 = (HttpWebRequest)WebRequest.Create(lul2);
-        //    request2.Headers.Add("Accept-Location", "*");
-        //    var response2 = (HttpWebResponse)request2.GetResponse();
-        //    //Console.WriteLine(response2.StatusCode);
-        //    ItemInfo iteminfo = ItemInfo.Create(new StreamReader(response2.GetResponseStream(), Encoding.UTF8).ReadToEnd());
-        //    response2.Close();
-        //    if (iteminfo != null)
-        //    {
-        //        string urlol3 = "http://www.youtube-mp3.org/get?video_id=" + vidId + "&ts_create=" + iteminfo.ts_create + "&r=" + iteminfo.r + "&h2=" + iteminfo.h2;
-        //        return new YTSong(iteminfo.title,vidId,signUrl(urlol3) + "\r\nAccept-Location: *\r\n");
-        //    }
-        //    else return null;
-        //}
-
         public static string createDirectLink(string vidId)
         {
             string urlol = "http://www.youtube-mp3.org/a/pushItem/?item=https%3A//www.youtube.com/watch%3Fv%3D" + vidId + "&el=ma&bf=false&r=" + secSinceEpoch();
             string lul = signUrl(urlol);
-            // Console.WriteLine(lul);
             var request = (HttpWebRequest)WebRequest.Create(lul.ToString());
             request.Headers.Add("Accept-Location", "*");
             var response = (HttpWebResponse)request.GetResponse();
-            //Console.WriteLine(response.StatusCode);
             response.Close();
 
             string urlol2 = "http://www.youtube-mp3.org/a/itemInfo/?video_id=" + vidId + "&ac=www&t=grp&r=" + secSinceEpoch();
@@ -136,7 +104,6 @@ namespace ytmp
             var request2 = (HttpWebRequest)WebRequest.Create(lul2);
             request2.Headers.Add("Accept-Location", "*");
             var response2 = (HttpWebResponse)request2.GetResponse();
-            //Console.WriteLine(response2.StatusCode);
             ItemInfo iteminfo = ItemInfo.Create(new StreamReader(response2.GetResponseStream(), Encoding.UTF8).ReadToEnd());
             response2.Close();
             if (iteminfo != null)

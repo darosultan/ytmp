@@ -1,28 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Threading;
-using System.ComponentModel;
 using System.Windows.Controls.Primitives;
 using Un4seen.Bass;
-using System.Collections.ObjectModel;
 
 namespace ytmp
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         private bool dragStarted = false;
@@ -47,12 +32,7 @@ namespace ytmp
             }
             else
                 MessageBox.Show(this, "Bass_Init error!");
-            //Worker workerObject = new Worker();
-            //Thread workerThread = new Thread(workerObject.DoWork);
-            //workerThread.Start();
             setSlider();
-
-            //playButtonIcon.Kind = MaterialDesignThemes.Wpf.PackIconKind.Pause;
         }
 
         private async void setSlider()
@@ -115,10 +95,8 @@ namespace ytmp
                     stream = Bass.BASS_StreamCreateURL(YTHelper.createDirectLink(song.id), 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_PRESCAN, null, IntPtr.Zero);
                     if (stream != 0)
                     {
-                        // play the channel
                         setVolume();
                         Bass.BASS_ChannelPlay(stream, false);
-
                     }
                 }
                 catch
@@ -245,17 +223,6 @@ namespace ytmp
             if (e.Delta > 0) volSlider.Value += 10.0;
             else if (e.Delta<0) volSlider.Value -= 10.0;
         }
-
-        //private async void loadList()
-        //{
-        //    if (linkBox.Text != null && linkBox.Text != "")
-        //    {
-        //        playListBox.Items.Clear();
-        //        List<YTSong> songs = YTHelper.gimmeItems(linkBox.Text);
-        //        foreach (YTSong song in songs)
-        //            playListBox.Items.Add(song);
-        //    }
-        //}
 
         private void openButton_Click(object sender, RoutedEventArgs e)
         {
