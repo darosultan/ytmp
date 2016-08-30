@@ -1,37 +1,22 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Threading;
-using System.ComponentModel;
 using System.Windows.Controls.Primitives;
 using Un4seen.Bass;
-using System.Collections.ObjectModel;
+using System.Windows.Threading;
 
 namespace ytmp
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         private bool dragStarted = false;
+        private bool changedByTimer = false;
         private int _deviceLatencyMS = 0;
         int stream;
         YTPlaylist playlist;
         double oldvol;
-
-
 
         public MainWindow()
         {
@@ -47,30 +32,26 @@ namespace ytmp
             }
             else
                 MessageBox.Show(this, "Bass_Init error!");
-            //Worker workerObject = new Worker();
-            //Thread workerThread = new Thread(workerObject.DoWork);
-            //workerThread.Start();
-            setSlider();
-
-            //playButtonIcon.Kind = MaterialDesignThemes.Wpf.PackIconKind.Pause;
+            DispatcherTimer timer = new DispatcherTimer();
+            timer.Interval = TimeSpan.FromMilliseconds(250);
+            timer.Tick+=setSlider;
+            timer.Start();
         }
 
-        private async void setSlider()
+        private void setSlider(object sender, EventArgs e)
         {
-            while (true)
+            if(!dragStarted&&stream!=0)
             {
-                if(!dragStarted&&stream!=0)
-                {
-                    double len = Bass.BASS_ChannelBytes2Seconds(stream, Bass.BASS_ChannelGetLength(stream));
-                    double pos = Bass.BASS_ChannelBytes2Seconds(stream, Bass.BASS_ChannelGetPosition(stream));
-                    double sliderPos= Math.Floor((pos / len) * 100.0);
-                    posSlider.Value = sliderPos;
-                    if (pos == len)
-                        BassNext();
-                }
-                await Task.Delay(500);
+                double len = Bass.BASS_ChannelBytes2Seconds(stream, Bass.BASS_ChannelGetLength(stream));
+                double pos = Bass.BASS_ChannelBytes2Seconds(stream, Bass.BASS_ChannelGetPosition(stream));
+                double sliderPos= Math.Floor((pos / len) * 100.0);
+                timerLabel.Content = YTHelper.timeFromSeconds(pos, len);
+                changedByTimer = true;
+                posSlider.Value = sliderPos;
+                changedByTimer = false;
+                if (pos == len)
+                    BassNext();
             }
-
         }
 
         private void ColorZoneDrag(object sender, MouseButtonEventArgs e)
@@ -112,29 +93,36 @@ namespace ytmp
                 image.Source = bitmap;
                 try
                 {
-                    stream = Bass.BASS_StreamCreateURL(YTHelper.createDirectLink(song.id), 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_PRESCAN, null, IntPtr.Zero);
+                    string directlink = YTHelper.createDirectLink(song.id);
+                    if (directlink != null)
+                        stream = Bass.BASS_StreamCreateURL(directlink, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_PRESCAN, null, IntPtr.Zero);
+                    else
+                        BrokenSong();
                     if (stream != 0)
                     {
-                        // play the channel
                         setVolume();
                         Bass.BASS_ChannelPlay(stream, false);
-
                     }
                 }
                 catch
                 {
-                    int index = playListBox.SelectedIndex;
-                    playlist.Remove(playlist.Current());
-                    updatePlayListBox();
-                    if (index < playListBox.Items.Count - 1)
-                        playListBox.SelectedIndex = index;
-                    else
-                        playListBox.SelectedIndex = 0;
-                    BassPlay();
+                    BrokenSong();
                 }
                 playListBox.SelectedIndex = playlist.playIndex;
                 playButtonIcon.Kind = MaterialDesignThemes.Wpf.PackIconKind.Pause;
             }
+        }
+
+        public void BrokenSong()
+        {
+            int index = playListBox.SelectedIndex;
+            playlist.Remove(playlist.Current());
+            updatePlayListBox();
+            if (index < playListBox.Items.Count - 1)
+                playListBox.SelectedIndex = index;
+            else
+                playListBox.SelectedIndex = 0;
+            BassPlay();
         }
 
         public void BassNext()
@@ -191,6 +179,7 @@ namespace ytmp
         {
             Bass.BASS_StreamFree(stream);
             playButtonIcon.Kind = MaterialDesignThemes.Wpf.PackIconKind.Play;
+            timerLabel.Content = "0:00 / 0:00";
         }
 
         private void Slider_DragCompleted(object sender, DragCompletedEventArgs e)
@@ -208,7 +197,7 @@ namespace ytmp
             object sender,
             RoutedPropertyChangedEventArgs<double> e)
         {
-            if (!dragStarted&&posSlider.IsMouseDirectlyOver)
+            if (!dragStarted&&!changedByTimer)
                 BassSetPos(posSlider.Value);
         }
 
@@ -234,28 +223,11 @@ namespace ytmp
             Bass.BASS_ChannelSetAttribute(stream, BASSAttribute.BASS_ATTRIB_VOL, vol);
         }
 
-        private void Slider_ValueChanged(object sender, MouseButtonEventArgs e)
-        {
-            if (!dragStarted)
-                BassSetPos(posSlider.Value);
-        }
-
         private void volIcon_MouseWheel(object sender, MouseWheelEventArgs e)
         {
             if (e.Delta > 0) volSlider.Value += 10.0;
             else if (e.Delta<0) volSlider.Value -= 10.0;
         }
-
-        //private async void loadList()
-        //{
-        //    if (linkBox.Text != null && linkBox.Text != "")
-        //    {
-        //        playListBox.Items.Clear();
-        //        List<YTSong> songs = YTHelper.gimmeItems(linkBox.Text);
-        //        foreach (YTSong song in songs)
-        //            playListBox.Items.Add(song);
-        //    }
-        //}
 
         private void openButton_Click(object sender, RoutedEventArgs e)
         {
@@ -278,10 +250,10 @@ namespace ytmp
         {
             playListBox.Items.Clear();
             if(playlist!=null)
-            for(int i=0; i<playlist.Count();i++)
-            {
-                playListBox.Items.Add(playlist[i]);
-            }
+                foreach(YTSong song in playlist.GetList())
+                {
+                    playListBox.Items.Add(song);
+                }
         }
 
         private void playButton_Click(object sender, RoutedEventArgs e)

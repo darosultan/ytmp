@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace ytmp
 {
@@ -54,6 +50,11 @@ namespace ytmp
             unshuffledList.Remove(song);
         }
 
+        public List<YTSong> GetList()
+        {
+            if (_shuffle) return shuffledList;
+            else return unshuffledList;
+        }
 
         public YTSong this[int index]
         {
