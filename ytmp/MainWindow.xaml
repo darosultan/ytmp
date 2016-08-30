@@ -72,7 +72,7 @@
             </Grid>
             <Grid HorizontalAlignment="Left" Margin="5,53,0,0" VerticalAlignment="Top" Height="39" Width="470" Grid.Column="0">
                 <Viewbox HorizontalAlignment="Left" VerticalAlignment="Center" StretchDirection="Both" Stretch="Uniform" Grid.ColumnSpan="2">
-                    <Label  x:Name="titleLabel" Content="Darude - Sandstorm"  VerticalAlignment="Center" FontSize="24" Height="39"/>
+                    <Label  x:Name="titleLabel" VerticalAlignment="Center" FontSize="24" Height="39"/>
                 </Viewbox>
             </Grid>
             <TextBox Style="{StaticResource MaterialDesignFloatingHintTextBox}" x:Name="linkBox" HorizontalAlignment="Left" Margin="10,10,0,0" TextWrapping="NoWrap"  materialDesign:HintAssist.Hint="Paste a link to a YouTube playlist or video here!" VerticalAlignment="Top" Width="387" RenderTransformOrigin="0.358,0.739"/>
