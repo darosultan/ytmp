@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
@@ -62,14 +61,18 @@ namespace ytmp
         {
             if(!dragStarted&&stream!=0)
             {
-                double len = Bass.BASS_ChannelBytes2Seconds(stream, Bass.BASS_ChannelGetLength(stream));
-                double pos = Bass.BASS_ChannelBytes2Seconds(stream, Bass.BASS_ChannelGetPosition(stream));
-                double sliderPos= Math.Floor((pos / len) * 100.0);
+                long lenbytes = Bass.BASS_ChannelGetLength(stream);
+                long posbytes = Bass.BASS_ChannelGetPosition(stream);
+                double len = Bass.BASS_ChannelBytes2Seconds(stream, lenbytes);
+                double pos = Bass.BASS_ChannelBytes2Seconds(stream, posbytes);
+                //double sliderPos= Math.Floor((pos / len) * 100.0);
+                posSlider.Maximum = len;
                 timerLabel.Content = YTHelper.timeFromSeconds(pos, len);
                 changedByTimer = true;
-                posSlider.Value = sliderPos;
+                //posSlider.Value = sliderPos;
+                posSlider.Value = pos;
                 changedByTimer = false;
-                if (pos == len)
+                if (posbytes >= lenbytes-10) //sometimes posbytes gets higher than lenbytes, sometimes posbytes gets stuck lower than lenbytes
                     BassNext();
             }
         }
@@ -80,7 +83,7 @@ namespace ytmp
                 this.DragMove();
         }
 
-        private void closeButton_Click(object sender, RoutedEventArgs e)
+        private void closeButton_Click(object sender, RoutedEventArgs e) //!TODO add this to alt+f4
         {
             YTConfig config = new YTConfig(linkBox.Text, volSlider.Value, (bool)repeatButton.IsChecked, (bool)shuffleButton.IsChecked);
             string json = JsonConvert.SerializeObject(config);
@@ -101,38 +104,41 @@ namespace ytmp
 
         public void BassPlay()
         {
-            if (!playListBox.Items.IsEmpty)
+            using (new WaitCursor())
             {
-                Bass.BASS_StreamFree(stream);
-                YTSong song = playlist.Current();
-
-                titleLabel.Content = song.title;
-
-                var fullFilePath = @"https://i.ytimg.com/vi/" + song.id + "/hqdefault.jpg";
-                BitmapImage bitmap = new BitmapImage();
-                bitmap.BeginInit();
-                bitmap.UriSource = new Uri(fullFilePath, UriKind.Absolute);
-                bitmap.EndInit();
-                image.Source = bitmap;
-                try
+                if (!playListBox.Items.IsEmpty)
                 {
-                    string directlink = YTHelper.createDirectLink(song.id);
-                    if (directlink != null)
-                        stream = Bass.BASS_StreamCreateURL(directlink, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_PRESCAN, null, IntPtr.Zero);
-                    else
-                        BrokenSong();
-                    if (stream != 0)
+                    Bass.BASS_StreamFree(stream);
+                    YTSong song = playlist.Current();
+
+                    titleLabel.Content = song.title;
+
+                    var fullFilePath = @"https://i.ytimg.com/vi/" + song.id + "/hqdefault.jpg";
+                    BitmapImage bitmap = new BitmapImage();
+                    bitmap.BeginInit();
+                    bitmap.UriSource = new Uri(fullFilePath, UriKind.Absolute);
+                    bitmap.EndInit();
+                    image.Source = bitmap;
+                    try
                     {
-                        setVolume();
-                        Bass.BASS_ChannelPlay(stream, false);
+                        string directlink = YTHelper.createDirectLink(song.id);
+                        if (directlink != null)
+                            stream = Bass.BASS_StreamCreateURL(directlink, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_PRESCAN, null, IntPtr.Zero);
+                        else
+                            BrokenSong();
+                        if (stream != 0)
+                        {
+                            setVolume();
+                            Bass.BASS_ChannelPlay(stream, false);
+                        }
                     }
+                    catch
+                    {
+                        BrokenSong();
+                    }
+                    playListBox.SelectedIndex = playlist.playIndex;
+                    playButtonIcon.Kind = MaterialDesignThemes.Wpf.PackIconKind.Pause;
                 }
-                catch
-                {
-                    BrokenSong();
-                }
-                playListBox.SelectedIndex = playlist.playIndex;
-                playButtonIcon.Kind = MaterialDesignThemes.Wpf.PackIconKind.Pause;
             }
         }
 
@@ -226,9 +232,9 @@ namespace ytmp
 
         private void BassSetPos(double posSlider)
         {
-            double len = Bass.BASS_ChannelBytes2Seconds(stream, Bass.BASS_ChannelGetLength(stream));
-            double pos = ((posSlider * len) / 100.0);
-            Bass.BASS_ChannelSetPosition(stream, pos);
+            //double len = Bass.BASS_ChannelBytes2Seconds(stream, Bass.BASS_ChannelGetLength(stream));
+            //double pos = ((posSlider * len) / 100.0);
+            Bass.BASS_ChannelSetPosition(stream, posSlider);
         }
 
         private void volSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)

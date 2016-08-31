@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.ClearScript.V8;
 using System.Net;
 using System.IO;
 using VideoLibrary;
@@ -78,7 +77,7 @@ namespace ytmp
                             pagetoken = listResponse.nextPageToken;
                         foreach (Item item in listResponse.items)
                         {
-                            if(item.snippet.title!="Deleted video")
+                            if(item.snippet.title!="Deleted video" && item.snippet.title != "Private video")
                                 output.Add(new YTSong(item.snippet.title, item.snippet.resourceId.videoId));
                         }
                     }
@@ -116,58 +115,15 @@ namespace ytmp
         public static string createDirectLink(string vidId)
         {
             var yt = YouTube.Default;
-            var vid = yt.GetAllVideos("http://www.youtube.com/watch?v=" + vidId).ToList();
-            var audios = vid.
+            var videos = yt.GetAllVideos("http://www.youtube.com/watch?v=" + vidId).ToList();
+            var audios = videos.
                 Where(_ => _.AudioFormat == AudioFormat.Aac && _.AdaptiveKind == AdaptiveKind.Audio).
                 ToList();
             if (audios.Count != 0)
                 return audios.MaxBy(_ => _.AudioBitrate).Uri;
             else return null;
         }
-
-        //public static string createDirectLink(string vidId)
-        //{
-        //    string urlol = "http://www.youtube-mp3.org/a/pushItem/?item=https%3A//www.youtube.com/watch%3Fv%3D" + vidId + "&el=ma&bf=false&r=" + secSinceEpoch();
-        //    string lul = signUrl(urlol);
-        //    var request = (HttpWebRequest)WebRequest.Create(lul.ToString());
-        //    request.Headers.Add("Accept-Location", "*");
-        //    var response = (HttpWebResponse)request.GetResponse();
-        //    response.Close();
-
-        //    string urlol2 = "http://www.youtube-mp3.org/a/itemInfo/?video_id=" + vidId + "&ac=www&t=grp&r=" + secSinceEpoch();
-        //    string lul2 = signUrl(urlol2);
-        //    //Console.WriteLine(lul2);
-        //    var request2 = (HttpWebRequest)WebRequest.Create(lul2);
-        //    request2.Headers.Add("Accept-Location", "*");
-        //    var response2 = (HttpWebResponse)request2.GetResponse();
-        //    ItemInfo iteminfo = ItemInfo.Create(new StreamReader(response2.GetResponseStream(), Encoding.UTF8).ReadToEnd());
-        //    response2.Close();
-        //    if (iteminfo != null)
-        //    {
-        //        string urlol3 = "http://www.youtube-mp3.org/get?video_id=" + vidId + "&ts_create=" + iteminfo.ts_create + "&r=" + iteminfo.r + "&h2=" + iteminfo.h2;
-        //        return signUrl(urlol3) + "\r\nAccept-Location: *\r\n";
-        //    }
-        //    else return null;
-        //}
-
-        public static string secSinceEpoch()
-        {
-            DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-            TimeSpan diff = DateTime.Now.ToUniversalTime() - origin;
-            return Convert.ToString(Math.Floor(diff.TotalSeconds));
-        }
-
-        public static string signUrl(string inStr)
-        {
-            var engine = new V8ScriptEngine();
-            engine.Execute(System.IO.File.ReadAllText("pwned.js"));
-            var lul = engine.Invoke("sig_url", inStr);
-            engine.Dispose();
-            return lul.ToString();
-        }
     }
-
-
 
     public class PageInfo
     {
@@ -290,6 +246,4 @@ namespace ytmp
         public PageInfo pageInfo { get; set; }
         public List<ItemV> items { get; set; }
     }
-
-
 }
