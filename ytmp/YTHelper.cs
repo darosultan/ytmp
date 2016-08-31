@@ -120,7 +120,9 @@ namespace ytmp
             var audios = vid.
                 Where(_ => _.AudioFormat == AudioFormat.Aac && _.AdaptiveKind == AdaptiveKind.Audio).
                 ToList();
-            return audios.MaxBy(_ => _.AudioBitrate).Uri;
+            if (audios.Count != 0)
+                return audios.MaxBy(_ => _.AudioBitrate).Uri;
+            else return null;
         }
 
         //public static string createDirectLink(string vidId)

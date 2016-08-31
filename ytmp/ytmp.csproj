@@ -82,7 +82,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ClickSelectTextBox.cs" />
     <Compile Include="ItemInfo.cs" />
+    <Compile Include="YTConfig.cs" />
     <Compile Include="YTHelper.cs" />
     <Compile Include="YTPlaylist.cs" />
     <Compile Include="YTSong.cs" />

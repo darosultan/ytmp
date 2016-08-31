@@ -6,6 +6,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Controls.Primitives;
 using Un4seen.Bass;
 using System.Windows.Threading;
+using System.IO;
+using Newtonsoft.Json;
 
 namespace ytmp
 {
@@ -17,11 +19,29 @@ namespace ytmp
         int stream;
         YTPlaylist playlist;
         double oldvol;
+        string configFile;
+        string configDir;
 
         public MainWindow()
         {
             InitializeComponent();
 
+            configDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData).Replace('\\', '/') + "/YTMP";
+            configFile = configDir + "/config.json";
+            if(File.Exists(configFile))
+            {
+                YTConfig config = JsonConvert.DeserializeObject<YTConfig>(File.ReadAllText(configFile));
+                linkBox.Text = config.url;
+                volSlider.Value = config.volume;
+                repeatButton.IsChecked = config.repeat;
+                shuffleButton.IsChecked = config.shuffle;
+            }
+            else
+            {
+                if (!Directory.Exists(configDir))
+                    Directory.CreateDirectory(configDir);
+                File.Create(configFile);
+            }
 
             if (Bass.BASS_Init(-1, 44100, BASSInit.BASS_DEVICE_LATENCY, IntPtr.Zero))
             {
@@ -62,6 +82,9 @@ namespace ytmp
 
         private void closeButton_Click(object sender, RoutedEventArgs e)
         {
+            YTConfig config = new YTConfig(linkBox.Text, volSlider.Value, (bool)repeatButton.IsChecked, (bool)shuffleButton.IsChecked);
+            string json = JsonConvert.SerializeObject(config);
+            File.WriteAllText(configFile,json);
             Close();
         }
 
