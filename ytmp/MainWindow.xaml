@@ -36,8 +36,12 @@
                 <materialDesign:PackIcon Grid.Column="0" VerticalAlignment="Center" Grid.Row="1" Kind="YoutubePlay" Width="35" Height="26" />
                 <TextBlock Padding="8, 0, 0, 0" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="22">YouTube Music Player</TextBlock>
 
-                <Button Cursor="Arrow" Padding="10, -6, 10, 0"  x:Name="minimizeButton"  Grid.Column="3" Grid.Row="0" Height="16" VerticalAlignment="Top" HorizontalAlignment="Right" Foreground="White" Click="minimizeButton_Click" >_</Button>
-                <Button Cursor="Arrow" Padding="10, -1, 10, 0"  x:Name="closeButton"  Grid.Column="5" Grid.Row="0" Height="16" VerticalAlignment="Top" HorizontalAlignment="Right" Foreground="White" Click="closeButton_Click" BorderThickness="0" FontSize="12" >x</Button>
+                <Button Cursor="Arrow" Padding="5, 0, 5, 0"  x:Name="minimizeButton"  Grid.Column="3" Grid.Row="0" Height="16" VerticalAlignment="Top" HorizontalAlignment="Right" Foreground="White" Click="minimizeButton_Click" >
+                    <materialDesign:PackIcon Kind="WindowMinimize" />
+                </Button>
+                <Button Cursor="Arrow" Padding="5, 0, 5, 0"  x:Name="closeButton"  Grid.Column="5" Grid.Row="0" Height="16" VerticalAlignment="Top" HorizontalAlignment="Right" Foreground="White" Click="closeButton_Click" BorderThickness="0" FontSize="12" >
+                    <materialDesign:PackIcon Kind="WindowClose" />
+                </Button>
                 <Label Grid.Column="5" HorizontalAlignment="Right" VerticalAlignment="Center" Height ="16" Padding="0" Grid.Row="2" Foreground="#DDFFFFFF" FontSize="9" >v0.1</Label>
             </Grid>
         </materialDesign:ColorZone>
@@ -48,13 +52,7 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <ListBox Grid.Column="1" x:Name="playListBox" HorizontalAlignment="Left" Height="405" VerticalAlignment="Top" Width="230" ItemsSource="{Binding playlist}" Margin="0,47,0,0">
-                <ListBox.ItemContainerStyle>
-                    <Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource {x:Type ListBoxItem}}">
-                        <EventSetter Event="MouseDoubleClick" Handler="playListBoxItem_MouseDoubleClick"/>
-                    </Style>
-                </ListBox.ItemContainerStyle>
-            </ListBox>
+            <ListBox  Grid.Column="1" x:Name="playListBox" HorizontalAlignment="Left" Height="401" VerticalAlignment="Top" Width="230" Margin="0,47,0,0" PreviewMouseDown="playListBoxItem_MouseDoubleClick" />
             <Grid Height="Auto" Grid.Column="1">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -75,7 +73,7 @@
                     <Label  x:Name="titleLabel" VerticalAlignment="Center" FontSize="24" Height="39"/>
                 </Viewbox>
             </Grid>
-            <local:ClickSelectTextBox Style="{StaticResource MaterialDesignFloatingHintTextBox}" x:Name="linkBox" HorizontalAlignment="Left" Margin="10,10,0,0" TextWrapping="NoWrap"  materialDesign:HintAssist.Hint="Paste a link to a YouTube playlist or video here!" VerticalAlignment="Top" Width="387" RenderTransformOrigin="0.358,0.739"/>
+            <local:ClickSelectTextBox Style="{StaticResource MaterialDesignFloatingHintTextBox}" x:Name="linkBox" HorizontalAlignment="Left" Margin="10,10,0,0" TextWrapping="NoWrap"  materialDesign:HintAssist.Hint="Paste a link to a YouTube channel, playlist or video here!" VerticalAlignment="Top" Width="387" RenderTransformOrigin="0.358,0.739"/>
             <Slider ValueChanged="Slider_ValueChanged"
     Thumb.DragStarted="Slider_DragStarted"
     Thumb.DragCompleted="Slider_DragCompleted"  Name="posSlider" Margin="5,377,4,49" IsMoveToPointEnabled="True" Maximum="100" />

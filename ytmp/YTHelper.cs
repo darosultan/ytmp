@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.ClearScript.V8;
 using System.Net;
 using System.IO;
 using VideoLibrary;
@@ -58,9 +57,9 @@ namespace ytmp
                 listId = ytlink.Substring(ytlink.IndexOf("list=") + 5);
                 
                 if (listId.Contains('&'))
-                    listId.Remove(listId.IndexOf('&'));
+                    listId=listId.Remove(listId.IndexOf('&'));
                 if (listId.Contains('#'))
-                    listId.Remove(listId.IndexOf('#'));
+                    listId=listId.Remove(listId.IndexOf('#'));
                 string pagetoken = String.Empty;
                 bool b = true;
                 while (b)
@@ -70,7 +69,7 @@ namespace ytmp
                     try
                     {
                         var response = (HttpWebResponse)request.GetResponse();
-                        ListResponse listResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<ListResponse>(new StreamReader(response.GetResponseStream(), Encoding.UTF8).ReadToEnd());
+                        YTObject listResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<YTObject>(new StreamReader(response.GetResponseStream(), Encoding.UTF8).ReadToEnd());
                         response.Close();
                         if (listResponse.nextPageToken ==null)
                             b = false;
@@ -78,13 +77,13 @@ namespace ytmp
                             pagetoken = listResponse.nextPageToken;
                         foreach (Item item in listResponse.items)
                         {
-                            if(item.snippet.title!="Deleted video")
+                            if(item.snippet.title!="Deleted video" && item.snippet.title != "Private video")
                                 output.Add(new YTSong(item.snippet.title, item.snippet.resourceId.videoId));
                         }
                     }
                     catch
                     {
-                        b = false;
+                        return null;
                     }
                 }
                 return output;
@@ -94,19 +93,85 @@ namespace ytmp
                 listId = ytlink.Substring(ytlink.IndexOf("v=") + 2);
 
                 if (listId.Contains('&'))
-                    listId.Remove(listId.IndexOf('#'));
+                    listId=listId.Remove(listId.IndexOf('#'));
                 if (listId.Contains('#'))
-                    listId.Remove(listId.IndexOf('#'));
+                    listId=listId.Remove(listId.IndexOf('#'));
 
                 string listRequestUrl = "https://www.googleapis.com/youtube/v3/videos?part=snippet&key=AIzaSyApTG3kkY0blW9WJFac00uwJp7Rkg31LCY&id=" + listId;
                 var request = (HttpWebRequest)WebRequest.Create(listRequestUrl);
-                var response = (HttpWebResponse)request.GetResponse();
-                VidResponse vidResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<VidResponse>(new StreamReader(response.GetResponseStream(), Encoding.UTF8).ReadToEnd());
-                response.Close();
-
-                foreach (ItemV item in vidResponse.items)
+                try
                 {
-                    output.Add(new YTSong(item.snippet.title, item.id));
+                    var response = (HttpWebResponse)request.GetResponse();
+                    YTObject vidResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<YTObject>(new StreamReader(response.GetResponseStream(), Encoding.UTF8).ReadToEnd());
+                    response.Close();
+
+                    foreach (Item item in vidResponse.items)
+                    {
+                        output.Add(new YTSong(item.snippet.title, item.id));
+                    }
+                    return output;
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+            else if(ytlink.Contains("channel/")||ytlink.Contains("user/"))
+            {
+                string channelId;
+                if(ytlink.Contains("user/"))
+                {
+                    string username = ytlink.Substring(ytlink.IndexOf("user/") + 5);
+                    if (username.Contains('/'))
+                        username = username.Remove(username.IndexOf('/'));
+                    string usernameRequestUrl = "https://www.googleapis.com/youtube/v3/channels?part=id&key=AIzaSyApTG3kkY0blW9WJFac00uwJp7Rkg31LCY&forUsername=" + username;
+                    var request = (HttpWebRequest)WebRequest.Create(usernameRequestUrl);
+                    try
+                    {
+                        var response = (HttpWebResponse)request.GetResponse();
+                        YTObject userResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<YTObject>(new StreamReader(response.GetResponseStream(), Encoding.UTF8).ReadToEnd());
+                        response.Close();
+                        if (userResponse.items[0].id != null)
+                            channelId = userResponse.items[0].id;
+                        else return null;
+                    }
+                    catch
+                    {
+                        return null;
+                    }
+                }
+                else
+                {
+                    channelId = ytlink.Substring(ytlink.IndexOf("channel/") + 8);
+                    if (channelId.Contains('/'))
+                        channelId=channelId.Remove(channelId.IndexOf('/'));
+                }
+
+                string pagetoken = String.Empty;
+                bool b = true;
+                while (b)
+                {
+                    string listRequestUrl = "https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=50&order=date&key=AIzaSyApTG3kkY0blW9WJFac00uwJp7Rkg31LCY&channelId=" + channelId + "&pageToken=" + pagetoken;
+                    var request = (HttpWebRequest)WebRequest.Create(listRequestUrl);
+                    try
+                    {
+                        var response = (HttpWebResponse)request.GetResponse();
+                        YTChannelObject listResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<YTChannelObject>(new StreamReader(response.GetResponseStream(), Encoding.UTF8).ReadToEnd());
+                        response.Close();
+                        if (listResponse.nextPageToken == null)
+                            b = false;
+                        else
+                            pagetoken = listResponse.nextPageToken;
+                        foreach (ChannelItem item in listResponse.items)
+                        {
+                            if (item.snippet.title != "Deleted video" && item.snippet.title != "Private video" && item.id.kind=="youtube#video")
+                                output.Add(new YTSong(item.snippet.title, item.id.videoId));
+                        }
+                    }
+                    catch
+                    {
+                        return null;
+                    }
                 }
                 return output;
             }
@@ -116,58 +181,13 @@ namespace ytmp
         public static string createDirectLink(string vidId)
         {
             var yt = YouTube.Default;
-            var vid = yt.GetAllVideos("http://www.youtube.com/watch?v=" + vidId).ToList();
-            var audios = vid.
-                Where(_ => _.AudioFormat == AudioFormat.Aac && _.AdaptiveKind == AdaptiveKind.Audio).
-                ToList();
+            var videos = yt.GetAllVideos("http://www.youtube.com/watch?v=" + vidId).ToList();
+            var audios = videos.Where(_ => _.AudioFormat == AudioFormat.Aac && _.AdaptiveKind == AdaptiveKind.Audio).ToList();
             if (audios.Count != 0)
                 return audios.MaxBy(_ => _.AudioBitrate).Uri;
             else return null;
         }
-
-        //public static string createDirectLink(string vidId)
-        //{
-        //    string urlol = "http://www.youtube-mp3.org/a/pushItem/?item=https%3A//www.youtube.com/watch%3Fv%3D" + vidId + "&el=ma&bf=false&r=" + secSinceEpoch();
-        //    string lul = signUrl(urlol);
-        //    var request = (HttpWebRequest)WebRequest.Create(lul.ToString());
-        //    request.Headers.Add("Accept-Location", "*");
-        //    var response = (HttpWebResponse)request.GetResponse();
-        //    response.Close();
-
-        //    string urlol2 = "http://www.youtube-mp3.org/a/itemInfo/?video_id=" + vidId + "&ac=www&t=grp&r=" + secSinceEpoch();
-        //    string lul2 = signUrl(urlol2);
-        //    //Console.WriteLine(lul2);
-        //    var request2 = (HttpWebRequest)WebRequest.Create(lul2);
-        //    request2.Headers.Add("Accept-Location", "*");
-        //    var response2 = (HttpWebResponse)request2.GetResponse();
-        //    ItemInfo iteminfo = ItemInfo.Create(new StreamReader(response2.GetResponseStream(), Encoding.UTF8).ReadToEnd());
-        //    response2.Close();
-        //    if (iteminfo != null)
-        //    {
-        //        string urlol3 = "http://www.youtube-mp3.org/get?video_id=" + vidId + "&ts_create=" + iteminfo.ts_create + "&r=" + iteminfo.r + "&h2=" + iteminfo.h2;
-        //        return signUrl(urlol3) + "\r\nAccept-Location: *\r\n";
-        //    }
-        //    else return null;
-        //}
-
-        public static string secSinceEpoch()
-        {
-            DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-            TimeSpan diff = DateTime.Now.ToUniversalTime() - origin;
-            return Convert.ToString(Math.Floor(diff.TotalSeconds));
-        }
-
-        public static string signUrl(string inStr)
-        {
-            var engine = new V8ScriptEngine();
-            engine.Execute(System.IO.File.ReadAllText("pwned.js"));
-            var lul = engine.Invoke("sig_url", inStr);
-            engine.Dispose();
-            return lul.ToString();
-        }
     }
-
-
 
     public class PageInfo
     {
@@ -236,34 +256,16 @@ namespace ytmp
         public string playlistId { get; set; }
         public int position { get; set; }
         public ResourceId resourceId { get; set; }
-    }
-
-    public class Localized
-    {
-        public string title { get; set; }
-        public string description { get; set; }
-    }
-
-    public class SnippetV
-    {
-        public string publishedAt { get; set; }
-        public string channelId { get; set; }
-        public string title { get; set; }
-        public string description { get; set; }
-        public Thumbnails thumbnails { get; set; }
-        public string channelTitle { get; set; }
         public List<string> tags { get; set; }
         public string categoryId { get; set; }
         public string liveBroadcastContent { get; set; }
         public Localized localized { get; set; }
     }
 
-    public class ItemV
+    public class Localized
     {
-        public string kind { get; set; }
-        public string etag { get; set; }
-        public string id { get; set; }
-        public SnippetV snippet { get; set; }
+        public string title { get; set; }
+        public string description { get; set; }
     }
 
     public class Item
@@ -274,22 +276,38 @@ namespace ytmp
         public Snippet snippet { get; set; }
     }
 
-    public class ListResponse
+    public class ChannelItem
+    {
+        public string kind { get; set; }
+        public string etag { get; set; }
+        public Id id { get; set; }
+        public Snippet snippet { get; set; }
+    }
+
+    public class Id
+    {
+        public string kind { get; set; }
+        public string videoId { get; set; }
+        public string playlistId { get; set; }
+    }
+
+    public class YTObject
     {
         public string kind { get; set; }
         public string etag { get; set; }
         public string nextPageToken { get; set; }
+        public string regionCode { get; set; }
         public PageInfo pageInfo { get; set; }
         public List<Item> items { get; set; }
     }
 
-    public class VidResponse
+    public class YTChannelObject
     {
         public string kind { get; set; }
         public string etag { get; set; }
+        public string nextPageToken { get; set; }
+        public string regionCode { get; set; }
         public PageInfo pageInfo { get; set; }
-        public List<ItemV> items { get; set; }
+        public List<ChannelItem> items { get; set; }
     }
-
-
 }
