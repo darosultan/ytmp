@@ -23,8 +23,16 @@ namespace ytmp
 
         public YTPlaylist(List<YTSong> list)
         {
-            unshuffledList = new List<YTSong>(list);
-            shuffledList = new List<YTSong>(list);
+            if (list != null)
+            {
+                unshuffledList = new List<YTSong>(list);
+                shuffledList = new List<YTSong>(list);
+            }
+            else
+            {
+                unshuffledList = new List<YTSong>();
+                shuffledList = new List<YTSong>();
+            }
             Shuffle();
             playIndex = 0;
         }
@@ -60,10 +68,14 @@ namespace ytmp
         {
             get
             {
-                if (_shuffle)
-                    return shuffledList[index];
-                else
-                    return unshuffledList[index];
+                if (index < this.Count())
+                {
+                    if (_shuffle)
+                        return shuffledList[index];
+                    else
+                        return unshuffledList[index];
+                }
+                else return null;
             }
         }
     }

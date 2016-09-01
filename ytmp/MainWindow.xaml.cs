@@ -7,6 +7,7 @@ using Un4seen.Bass;
 using System.Windows.Threading;
 using System.IO;
 using Newtonsoft.Json;
+using System.Windows.Controls;
 
 namespace ytmp
 {
@@ -96,10 +97,13 @@ namespace ytmp
             WindowState = WindowState.Minimized;
         }
 
-        void playListBoxItem_MouseDoubleClick(object sender, RoutedEventArgs e)
+        void playListBoxItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            playlist.playIndex = playListBox.SelectedIndex;
-            BassPlay();
+            if (e.ClickCount == 2 && e.LeftButton == MouseButtonState.Pressed)
+            {
+                playlist.playIndex = playListBox.SelectedIndex;
+                BassPlay();
+            }
         }
 
         public void BassPlay()
@@ -108,19 +112,21 @@ namespace ytmp
             {
                 if (!playListBox.Items.IsEmpty)
                 {
-                    Bass.BASS_StreamFree(stream);
-                    YTSong song = playlist.Current();
-
-                    titleLabel.Content = song.title;
-
-                    var fullFilePath = @"https://i.ytimg.com/vi/" + song.id + "/hqdefault.jpg";
-                    BitmapImage bitmap = new BitmapImage();
-                    bitmap.BeginInit();
-                    bitmap.UriSource = new Uri(fullFilePath, UriKind.Absolute);
-                    bitmap.EndInit();
-                    image.Source = bitmap;
+                    
                     try
                     {
+                        Bass.BASS_StreamFree(stream);
+                        YTSong song = playlist.Current();
+
+                        titleLabel.Content = song.title;
+
+                        var fullFilePath = @"https://i.ytimg.com/vi/" + song.id + "/hqdefault.jpg";
+                        BitmapImage bitmap = new BitmapImage();
+                        bitmap.BeginInit();
+                        bitmap.UriSource = new Uri(fullFilePath, UriKind.Absolute);
+                        bitmap.EndInit();
+                        image.Source = bitmap;
+
                         string directlink = YTHelper.createDirectLink(song.id);
                         if (directlink != null)
                             stream = Bass.BASS_StreamCreateURL(directlink, 0, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_PRESCAN, null, IntPtr.Zero);
@@ -281,6 +287,10 @@ namespace ytmp
             if(playlist!=null)
                 foreach(YTSong song in playlist.GetList())
                 {
+                    //TextBlock item = new TextBlock();
+                    //item.Padding = new Thickness(0.0);
+                    //item.Text = song.ToString();
+                    //item.MouseDown += new MouseButtonEventHandler(playListBoxItem_MouseDoubleClick);
                     playListBox.Items.Add(song);
                 }
         }
