@@ -1,7 +1,7 @@
 ﻿
 namespace ytmp
 {
-    class YTSong
+    public class YTSong
     {
         public YTSong(string title, string id)
         {

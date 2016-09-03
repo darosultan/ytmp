@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:ytmp"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
-        Title="YouTube Music Player" Height="506" Width="710"
+        Title="YouTube Music Player" Height="516" Width="710"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         Background="{DynamicResource MaterialDesignPaper}"
         TextElement.FontWeight="Medium"
@@ -35,8 +35,16 @@
 
                 <materialDesign:PackIcon Grid.Column="0" VerticalAlignment="Center" Grid.Row="1" Kind="YoutubePlay" Width="35" Height="26" />
                 <TextBlock Padding="8, 0, 0, 0" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="22">YouTube Music Player</TextBlock>
+                <ToggleButton Name="transitionButton" Grid.RowSpan="3" Margin="0,0,15,0" Grid.Column="2" HorizontalAlignment="Right" Style="{StaticResource MaterialDesignActionLightToggleButton}" Click="transitionButton_Click">
+                    <ToggleButton.Content>
+                        <materialDesign:PackIcon Kind="Account" />
+                    </ToggleButton.Content>
+                    <materialDesign:ToggleButtonAssist.OnContent>
+                        <materialDesign:PackIcon Kind="PlaylistPlay" />
+                    </materialDesign:ToggleButtonAssist.OnContent>
+                </ToggleButton>
 
-                <Button Cursor="Arrow" Padding="5, 0, 5, 0"  x:Name="minimizeButton"  Grid.Column="3" Grid.Row="0" Height="16" VerticalAlignment="Top" HorizontalAlignment="Right" Foreground="White" Click="minimizeButton_Click" >
+                <Button Cursor="Arrow" Padding="5, 0, 5, 0"  x:Name="minimizeButton"  Grid.Column="3" Grid.Row="0" Height="16" VerticalAlignment="Top" HorizontalAlignment="Right" Foreground="White" Click="minimizeButton_Click">
                     <materialDesign:PackIcon Kind="WindowMinimize" />
                 </Button>
                 <Button Cursor="Arrow" Padding="5, 0, 5, 0"  x:Name="closeButton"  Grid.Column="5" Grid.Row="0" Height="16" VerticalAlignment="Top" HorizontalAlignment="Right" Foreground="White" Click="closeButton_Click" BorderThickness="0" FontSize="12" >
@@ -46,54 +54,14 @@
             </Grid>
         </materialDesign:ColorZone>
 
-        <Grid>
 
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <ListBox  Grid.Column="1" x:Name="playListBox" HorizontalAlignment="Left" Height="401" VerticalAlignment="Top" Width="230" Margin="0,47,0,0" PreviewMouseDown="playListBoxItem_MouseDoubleClick" />
-            <Grid Height="Auto" Grid.Column="1">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <ToggleButton x:Name="repeatButton" Style="{StaticResource MaterialDesignFlatToggleButton}" Margin="0,7,0,0" VerticalAlignment="Top" HorizontalAlignment="Center" Height="35" Width="35" Grid.Column="0">
-                    <materialDesign:PackIcon Kind="Repeat" Height="21" Width="21" />
-                </ToggleButton>
-                <ToggleButton x:Name="shuffleButton" Style="{StaticResource MaterialDesignFlatToggleButton}" Margin="0,7,0,0" VerticalAlignment="Top" HorizontalAlignment="Center" Height="35" Width="35" Grid.Column="1" Click="shuffleButton_Click">
-                    <materialDesign:PackIcon Kind="Shuffle" Height="21" Width="21" />
-                </ToggleButton>
-            </Grid>
-            <Grid Grid.Column="0" Margin="0,97,0,81" Width="480" Height="270">
-                <Image x:Name="image" Width="480" Margin="0,-45" Stretch="UniformToFill" Height="360"/>
-            </Grid>
-            <Grid HorizontalAlignment="Left" Margin="5,53,0,0" VerticalAlignment="Top" Height="39" Width="470" Grid.Column="0">
-                <Viewbox HorizontalAlignment="Left" VerticalAlignment="Center" StretchDirection="Both" Stretch="Uniform" Grid.ColumnSpan="2">
-                    <Label  x:Name="titleLabel" VerticalAlignment="Center" FontSize="24" Height="39"/>
-                </Viewbox>
-            </Grid>
-            <local:ClickSelectTextBox Style="{StaticResource MaterialDesignFloatingHintTextBox}" x:Name="linkBox" HorizontalAlignment="Left" Margin="10,10,0,0" TextWrapping="NoWrap"  materialDesign:HintAssist.Hint="Paste a link to a YouTube channel, playlist or video here!" VerticalAlignment="Top" Width="387" RenderTransformOrigin="0.358,0.739"/>
-            <Slider ValueChanged="Slider_ValueChanged"
-    Thumb.DragStarted="Slider_DragStarted"
-    Thumb.DragCompleted="Slider_DragCompleted"  Name="posSlider" Margin="5,377,4,49" IsMoveToPointEnabled="True" Maximum="100" />
-            <Button x:Name="prevButton" Cursor="Arrow" Padding ="0" Margin="10,406,437,10" Click="prevButton_Click">
-                <materialDesign:PackIcon Kind="SkipPrevious" Width="25" Height="25" />
-            </Button>
-            <Button x:Name="playButton" Cursor="Arrow" Padding ="0" Margin="47,406,387,10" Click="playButton_Click" >
-                <materialDesign:PackIcon Name="playButtonIcon" Kind="Play" Width="25" Height="25" />
-            </Button>
-            <Grid Margin="297,406,10,10" >
-                <Label VerticalAlignment="Center" HorizontalAlignment="Right" Padding="0" Name="timerLabel" FontSize="24">0:00 / 0:00</Label>
-            </Grid>
-            <Button x:Name="nextButton" Cursor="Arrow" Padding ="0" Margin="97,406,350,10" Click="nextButton_Click" >
-                <materialDesign:PackIcon Kind="SkipNext" Width="25" Height="25" />
-            </Button>
-            <Button Cursor="Arrow" Name="openButton" Style="{StaticResource MaterialDesignFlatButton}" Margin="402,18,10,398" Click="openButton_Click">Open</Button>
-            <Button x:Name="muteButton" Cursor="Arrow" Padding="0" Style="{StaticResource MaterialDesignFlatButton}" Margin="144,406,304,10" Click="muteButton_Click">
-                <materialDesign:PackIcon Name="volIcon" Kind="VolumeHigh" Width="25" Height="25" />
-            </Button>
-            <Slider x:Name="volSlider" Minimum="0" Maximum="100" Style="{StaticResource MaterialDesignDiscreteSlider}" Margin="181,377,183,19" ValueChanged="volSlider_ValueChanged" MouseWheel="volIcon_MouseWheel" Value="100" IsMoveToPointEnabled="True"/>
-        </Grid>
+        <materialDesign:Transitioner Margin="0,10,0,0" Name="transi" SelectedIndex="0">
+            <materialDesign:TransitionerSlide >
+                <local:YTPlayer x:Name="playerSlide"/>
+            </materialDesign:TransitionerSlide>
+            <materialDesign:TransitionerSlide>
+                <local:YTProfile x:Name="profileSlide"/>
+            </materialDesign:TransitionerSlide>            
+        </materialDesign:Transitioner>
     </DockPanel>
 </Window>

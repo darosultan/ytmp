@@ -6,12 +6,18 @@ using System.Net;
 using System.IO;
 using VideoLibrary;
 using MoreLinq;
+using Newtonsoft.Json;
 
 namespace ytmp
 {
     static class YTHelper
     {
         private static readonly Random rnd = new Random();
+
+        public static readonly string clientId = "86543974352-9r9fp7hg8d87m473vnod2gq7mcg421ep.apps.googleusercontent.com";
+        public static readonly string secret = "z0TALtfbmdjscxE-K9mQ8Rr6";
+        private static readonly string redirectUri = "urn:ietf:wg:oauth:2.0:oob";
+        private static string scopes = "https://www.googleapis.com/auth/youtube.readonly";
 
         public static void Shuffle<T>(this IList<T> list)
         {
@@ -24,6 +30,12 @@ namespace ytmp
                 list[k] = list[n];
                 list[n] = value;
             }
+        }
+
+        public static void RevokeToken(string refresh_token)
+        {
+            string url = "https://accounts.google.com/o/oauth2/revoke?token="+refresh_token;
+            CallApi(url);
         }
 
         public static string timeFromSeconds(double curSec, double lenSec)
@@ -47,7 +59,7 @@ namespace ytmp
             return curminutes.ToString() + ":" + curzerosec + " / " + lenminutes.ToString() + ":" + lenzerosec;
         }
 
-        public static List<YTSong> gimmeItems(string ytlink)
+        public static List<YTSong> getPlaylistItems(string ytlink)
         {
             List<YTSong> output = new List<YTSong>();
             string listId;
@@ -178,7 +190,7 @@ namespace ytmp
             else return null;
         }
 
-        public static string createDirectLink(string vidId)
+        public static string getAudioDirectLink(string vidId)
         {
             var yt = YouTube.Default;
             var videos = yt.GetAllVideos("http://www.youtube.com/watch?v=" + vidId).ToList();
@@ -186,6 +198,127 @@ namespace ytmp
             if (audios.Count != 0)
                 return audios.MaxBy(_ => _.AudioBitrate).Uri;
             else return null;
+        }
+
+        public static YTProfileInfo GetProfileInfo(string AccessToken)
+        {
+            try
+            {
+                string url = "https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true";
+                string response = CallApi(url, AccessToken);
+                YTObject info = JsonConvert.DeserializeObject<YTObject>(response);
+                return new YTProfileInfo(info.items[0].snippet.title, info.items[0].snippet.thumbnails.high.url);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public static List<YTPlaylistItem> getMyPlaylists(string AccessToken)
+        {
+            List<YTPlaylistItem> output = new List<YTPlaylistItem>();
+            string pagetoken = String.Empty;
+            
+            bool b = true;
+            while(b)
+            {
+                try
+                {
+                    string url = "https://www.googleapis.com/youtube/v3/playlists?part=snippet&mine=true&pageToken=" + pagetoken;
+                    string response = CallApi(url, AccessToken);
+                    YTObject listResponse = Newtonsoft.Json.JsonConvert.DeserializeObject<YTObject>(response);
+                    if (listResponse.nextPageToken == null)
+                        b = false;
+                    else
+                        pagetoken = listResponse.nextPageToken;
+                    foreach (Item item in listResponse.items)
+                    {
+                        output.Add(new YTPlaylistItem(item.snippet.title, item.id));
+                    }
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+            return output;
+        }
+
+        public static string CallApi(string Url, string AccessToken = null)
+        {
+            var request = (HttpWebRequest)WebRequest.Create(Url);
+            Stream output;
+            if (AccessToken != null)
+                request.Headers.Add("Authorization", "Bearer " + AccessToken);
+            try
+            {
+                var response = (HttpWebResponse)request.GetResponse();
+                output = response.GetResponseStream();
+                
+                string lul = new StreamReader(output, Encoding.UTF8).ReadToEnd();
+                response.Close();
+                return lul;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public static YTAuth Exchange(string authCode)
+        {
+            var request = (HttpWebRequest)WebRequest.Create("https://accounts.google.com/o/oauth2/token");
+
+            string postData = string.Format("code={0}&client_id={1}&client_secret={2}&redirect_uri={3}&grant_type=authorization_code", authCode, clientId, secret, redirectUri);
+            var data = Encoding.ASCII.GetBytes(postData);
+
+            request.Method = "POST";
+            request.ContentType = "application/x-www-form-urlencoded";
+            request.ContentLength = data.Length;
+
+            using (var stream = request.GetRequestStream())
+            {
+                stream.Write(data, 0, data.Length);
+            }
+
+            var response = (HttpWebResponse)request.GetResponse();
+
+            var responseString = new StreamReader(response.GetResponseStream()).ReadToEnd();
+
+            var x = YTHelper.GetAuth(responseString);
+
+            return x;
+
+        }
+        
+        public static Uri GetAutenticationUri()
+        {
+            string oauth = string.Format("https://accounts.google.com/o/oauth2/auth?client_id={0}&redirect_uri={1}&scope={2}&response_type=code", clientId, redirectUri, scopes);
+            return new Uri(oauth);
+        }
+
+        public static YTAuth GetAuth(string response)
+        {
+            YTAuth result = JsonConvert.DeserializeObject<YTAuth>(response);
+            result.created = DateTime.Now;   // DateTime.Now.Add(new TimeSpan(-2, 0, 0)); //For testing force refresh.
+            return result;
+        }
+
+    }
+
+    public class YTPlaylistItem
+    {
+        public YTPlaylistItem(string name, string id)
+        {
+            Name = name;
+            Id = id;
+        }
+        public string Name { get; set; }
+        public string Id { get; set; }
+        public override string ToString()
+        {
+            return Name;
         }
     }
 

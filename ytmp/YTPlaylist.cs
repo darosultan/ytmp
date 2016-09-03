@@ -2,7 +2,7 @@
 
 namespace ytmp
 {
-    class YTPlaylist
+    public class YTPlaylist
     {
         private bool _shuffle;
         public bool shuffle

@@ -1,0 +1,63 @@
+﻿<UserControl x:Class="ytmp.YTPlayer"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:local="clr-namespace:ytmp"
+             mc:Ignorable="d" 
+             TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        Background="{DynamicResource MaterialDesignPaper}"
+        TextElement.FontWeight="Medium"
+        TextElement.FontSize="14"
+        FontFamily="pack://application:,,,/MaterialDesignThemes.Wpf;component/Resources/Roboto/#Roboto"
+             d:DesignHeight="448" d:DesignWidth="710">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <ListBox  Grid.Column="1" x:Name="playListBox" HorizontalAlignment="Left" Height="401" VerticalAlignment="Top" Width="230" Margin="0,47,0,0" PreviewMouseDown="playListBoxItem_MouseDoubleClick" />
+        <Grid Height="Auto" Grid.Column="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <ToggleButton x:Name="repeatButton" Style="{StaticResource MaterialDesignFlatToggleButton}" Margin="0,7,0,0" VerticalAlignment="Top" HorizontalAlignment="Center" Height="35" Width="35" Grid.Column="0">
+                <materialDesign:PackIcon Kind="Repeat" Height="21" Width="21" />
+            </ToggleButton>
+            <ToggleButton x:Name="shuffleButton" Style="{StaticResource MaterialDesignFlatToggleButton}" Margin="0,7,0,0" VerticalAlignment="Top" HorizontalAlignment="Center" Height="35" Width="35" Grid.Column="1" Click="shuffleButton_Click">
+                <materialDesign:PackIcon Kind="Shuffle" Height="21" Width="21" />
+            </ToggleButton>
+        </Grid>
+        <Grid Grid.Column="0" Margin="0,97,0,81" Width="480" Height="270">
+            <Image x:Name="image" Width="480" Margin="0,-45" Stretch="UniformToFill" Height="360"/>
+        </Grid>
+        <Grid HorizontalAlignment="Left" Margin="5,53,0,0" VerticalAlignment="Top" Height="39" Width="470" Grid.Column="0">
+            <Viewbox HorizontalAlignment="Left" VerticalAlignment="Center" StretchDirection="Both" Stretch="Uniform" Grid.ColumnSpan="2">
+                <Label  x:Name="titleLabel" VerticalAlignment="Center" FontSize="24" Height="39"/>
+            </Viewbox>
+        </Grid>
+        <local:ClickSelectTextBox Style="{StaticResource MaterialDesignFloatingHintTextBox}" x:Name="linkBox" HorizontalAlignment="Left" Margin="10,10,0,0" TextWrapping="NoWrap"  materialDesign:HintAssist.Hint="Paste a link to a YouTube channel, playlist or video here!" VerticalAlignment="Top" Width="387" RenderTransformOrigin="0.358,0.739"/>
+        <Slider ValueChanged="Slider_ValueChanged"
+    Thumb.DragStarted="Slider_DragStarted"
+    Thumb.DragCompleted="Slider_DragCompleted"  Name="posSlider" Margin="5,377,4,49" IsMoveToPointEnabled="True" Maximum="100" />
+        <Button x:Name="prevButton" Cursor="Arrow" Padding ="0" Margin="10,406,437,10" Click="prevButton_Click">
+            <materialDesign:PackIcon Kind="SkipPrevious" Width="25" Height="25" />
+        </Button>
+        <Button x:Name="playButton" Cursor="Arrow" Padding ="0" Margin="47,406,387,10" Click="playButton_Click" >
+            <materialDesign:PackIcon Name="playButtonIcon" Kind="Play" Width="25" Height="25" />
+        </Button>
+        <Grid Margin="297,406,10,10" >
+            <Label VerticalAlignment="Center" HorizontalAlignment="Right" Padding="0" Name="timerLabel" FontSize="24">0:00 / 0:00</Label>
+        </Grid>
+        <Button x:Name="nextButton" Cursor="Arrow" Padding ="0" Margin="97,406,350,10" Click="nextButton_Click" >
+            <materialDesign:PackIcon Kind="SkipNext" Width="25" Height="25" />
+        </Button>
+        <Button Cursor="Arrow" Name="openButton" Style="{StaticResource MaterialDesignFlatButton}" Margin="402,18,10,398" Click="openButton_Click">Open</Button>
+        <Button x:Name="muteButton" Cursor="Arrow" Padding="0" Style="{StaticResource MaterialDesignFlatButton}" Margin="144,406,304,10" Click="muteButton_Click">
+            <materialDesign:PackIcon Name="volIcon" Kind="VolumeHigh" Width="25" Height="25" />
+        </Button>
+        <Slider x:Name="volSlider" Minimum="0" Maximum="100" Style="{StaticResource MaterialDesignDiscreteSlider}" Margin="181,377,183,19" ValueChanged="volSlider_ValueChanged" MouseWheel="volIcon_MouseWheel" Value="100" IsMoveToPointEnabled="True"/>
+    </Grid>
+</UserControl>
